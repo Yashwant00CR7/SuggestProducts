@@ -14,29 +14,19 @@ firebase_admin.initialize_app(cred)
 
 # Initialize Firestore DB
 db = firestore.client()
-
-# from flask import Flask, jsonify, request
-# import firebase_admin
-# from firebase_admin import credentials, firestore
-
-# app = Flask(__name__)
-
-# # Initialize Firebase
-# cred = credentials.Certificate(r'temp/firebase_config.json')
-# firebase_admin.initialize_app(cred)
-
-# # Initialize Firestore DB
-# db = firestore.client()
+# Product recommendations based on user roles
+role_based_recommendations = {
+    "Foodie": ["Chocolate", "Noodles", "Biscuit"],
+    "Techie": ["Watches", "Shampoo", "Coca-Cola"],
+    "Sports": ["Bisleri", "Chocolate", "Coca-Cola"],
+    "Business": ["Watches", "Bisleri", "Harpic"],
+    "Education": ["Biscuit", "Noodles", "Chocolate"],
+    "Homemaker": ["Harpic", "Shampoo", "Biscuit"]
+}
 
 @app.route('/')
 def home():
     return "Firebase Connected with Flask!"
-
-@app.route('/add', methods=['POST'])
-def add_data():
-    data = request.json
-    doc_ref = db.collection('users').add(data)
-    return jsonify({"status": "success", "id": str(doc_ref[1].id)})
 
 @app.route('/get', methods=['GET'])
 def get_and_update_data():
@@ -54,9 +44,11 @@ def get_and_update_data():
     user_data = user_doc.to_dict()
 
     # Check if the user is logged in
-    if user_data.get('loggedIn', False):
-        user_name = user_data.get('name', 'Unknown')
-        suggested_products = [user_name]  # For now, just add the username
+    if user_data.get('loggedIn', True):
+        user_role = user_data.get('role', 'Unknown')
+
+        # Get suggested products based on the role
+        suggested_products = role_based_recommendations.get(user_role, [])
 
         # Update Firestore with new suggested products
         user_ref.update({'suggestedProducts': suggested_products})
@@ -65,5 +57,7 @@ def get_and_update_data():
 
     return jsonify({'status': 'failed', 'message': 'User is not logged in'}), 403
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    from os import environ
+    app.run(host="0.0.0.0", port=environ.get("PORT", 5000))
+
