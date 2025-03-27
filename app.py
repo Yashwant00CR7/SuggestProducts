@@ -15,7 +15,6 @@
 # # Initialize Firestore DB
 # db = firestore.client()
 
-
 from flask import Flask, jsonify, request
 import firebase_admin
 from firebase_admin import credentials, firestore
