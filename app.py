@@ -1,11 +1,27 @@
+# from flask import Flask, jsonify, request
+# import firebase_admin
+# from firebase_admin import credentials, firestore
+
+# app = Flask(__name__)
+
+# # Initialize Firebase
+# cred = credentials.Certificate('firebase_config.json')
+# firebase_admin.initialize_app(cred)
+
+# # Initialize Firestore DB
+# db = firestore.client()
+
+import json
+import os
 from flask import Flask, jsonify, request
 import firebase_admin
 from firebase_admin import credentials, firestore
 
 app = Flask(__name__)
 
-# Initialize Firebase
-cred = credentials.Certificate('firebase_config.json')
+# Load Firebase credentials from environment variables
+firebase_config = json.loads(os.getenv("FIREBASE_CONFIG"))
+cred = credentials.Certificate(firebase_config)
 firebase_admin.initialize_app(cred)
 
 # Initialize Firestore DB
