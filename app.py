@@ -1,4 +1,4 @@
-# //Deploy code 
+# //Deploy code  
 import json
 import os
 from flask import Flask, jsonify, request
@@ -14,6 +14,7 @@ firebase_admin.initialize_app(cred)
 
 # Initialize Firestore DB
 db = firestore.client()
+
 # Product recommendations based on user roles
 role_based_recommendations = {
     "Foodie": ["Chocolate", "Noodles", "Biscuit"],
@@ -47,17 +48,25 @@ def get_and_update_data():
     if user_data.get('loggedIn', True):
         user_role = user_data.get('role', 'Unknown')
 
-        # Get suggested products based on the role
-        suggested_products = role_based_recommendations.get(user_role, [])
+        # Get suggested product names based on the role
+        suggested_product_names = role_based_recommendations.get(user_role, [])
 
-        # Update Firestore with new suggested products
-        user_ref.update({'suggestedProducts': suggested_products})
+        # Retrieve corresponding Firestore document UIDs
+        suggested_product_uids = []
+        products_ref = db.collection('products')
 
-        return jsonify({'status': 'success', 'updated_user': {'userId': user_id, 'suggestedProducts': suggested_products}})
+        for product_name in suggested_product_names:
+            query = products_ref.where("ProductName", "==", product_name).stream()
+            for product in query:
+                suggested_product_uids.append(product.id)  # Getting the Firestore document UID
+
+        # Update Firestore with new suggested product UIDs
+        user_ref.update({'suggestedProducts': suggested_product_uids})
+
+        return jsonify({'status': 'success', 'updated_user': {'userId': user_id, 'suggestedProducts': suggested_product_uids}})
 
     return jsonify({'status': 'failed', 'message': 'User is not logged in'}), 403
 
 if __name__ == "__main__":
     from os import environ
     app.run(host="0.0.0.0", port=environ.get("PORT", 5000))
-
